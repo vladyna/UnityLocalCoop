@@ -1,5 +1,6 @@
 using TMPro;
 using UnityEngine;
+
 namespace Test.UI
 {
     public class TutorialEntryUI : MonoBehaviour

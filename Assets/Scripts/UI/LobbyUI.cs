@@ -21,33 +21,63 @@ namespace Test.UI
 
         private void Start()
         {
+            if (_lobbyManager == null || _gameManager == null)
+                return;
+
             if (_ipInput != null)
             {
                 _ipInput.text = _lobbyManager.LastKnownHostLanIp;
             }
 
-            _hostButton.onClick.AddListener(OnHostClicked);
-            _connectButton.onClick.AddListener(OnConnectClicked);
-            _startGameButton.onClick.AddListener(OnStartGameClicked);
+            if (_hostButton != null)
+                _hostButton.onClick.AddListener(OnHostClicked);
+
+            if (_connectButton != null)
+                _connectButton.onClick.AddListener(OnConnectClicked);
+
+            if (_startGameButton != null)
+                _startGameButton.onClick.AddListener(OnStartGameClicked);
+
             _lobbyManager.OnNetworkStartFailed += OnNetworkStartFailed;
+            _lobbyManager.OnNetworkStatus += OnNetworkStatus;
         }
 
         private void OnDestroy()
         {
-            _lobbyManager.OnNetworkStartFailed -= OnNetworkStartFailed;
+            if (_lobbyManager != null)
+            {
+                _lobbyManager.OnNetworkStartFailed -= OnNetworkStartFailed;
+                _lobbyManager.OnNetworkStatus -= OnNetworkStatus;
+            }
         }
 
-        private void OnNetworkStartFailed(string obj)
+        private void OnNetworkStatus(string message)
         {
-            _connectionStatus.text = obj;
-            _hostButton.interactable = true;
-            _connectButton.interactable = true;
-            _startGameButton.interactable = true;
+            if (_connectionStatus != null)
+                _connectionStatus.text = message;
+        }
+
+        private void OnNetworkStartFailed(string message)
+        {
+            if (_connectionStatus != null)
+                _connectionStatus.text = message;
+
+            if (_hostButton != null)
+                _hostButton.interactable = true;
+
+            if (_connectButton != null)
+                _connectButton.interactable = true;
+
+            if (_startGameButton != null)
+                _startGameButton.interactable = true;
         }  
 
         private void OnHostClicked()
         {
-            _lobbyManager.CreateLobby(_portInput.text);
+            SetButtonsInteractable(false);
+
+            var port = _portInput != null ? _portInput.text : null;
+            _lobbyManager.CreateLobby(port);
             if (_ipInput != null)
             {
                 _ipInput.text = _lobbyManager.LastKnownHostLanIp;
@@ -57,13 +87,25 @@ namespace Test.UI
 
         private void OnConnectClicked()
         {
+            SetButtonsInteractable(false);
+
             var ip = _ipInput != null ? _ipInput.text : null;
-            _lobbyManager.JoinLobby(ip, _portInput.text);
+            var port = _portInput != null ? _portInput.text : null;
+            _lobbyManager.JoinLobby(ip, port);
         }
 
         private void OnStartGameClicked()
         {
             _gameManager.RequestStartGame();
+        }
+
+        private void SetButtonsInteractable(bool value)
+        {
+            if (_hostButton != null)
+                _hostButton.interactable = value;
+
+            if (_connectButton != null)
+                _connectButton.interactable = value;
         }
     }
 }

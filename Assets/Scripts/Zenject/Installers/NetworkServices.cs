@@ -9,7 +9,8 @@ namespace Test.Zenject.Installers
         public override void InstallBindings()
         {
 
-            if (_lobbyManager != null && _lobbyManager.IsInLobby)
+            var isNetwork = _lobbyManager != null && _lobbyManager.IsInLobby;
+            if (isNetwork)
             {
                 Container.Bind<IObjectSpawnService>()
                     .To<NetworkObjectSpawnService>()

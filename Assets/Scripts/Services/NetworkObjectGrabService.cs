@@ -63,7 +63,8 @@ namespace Test.Services
         {
             if (_grabbedObject != null)
                 return;
-            if (Physics.Raycast(origin, direction, out var hit, 3f))
+
+            if (Physics.Raycast(origin, direction, out var hit, maxDistance))
             {   
                 var netObj = hit.collider.GetComponentInParent<NetworkObject>();
                 if (netObj != null)
@@ -114,7 +115,11 @@ namespace Test.Services
         [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
         public void RequestGrabServerRpc(GrabRequest req, RpcParams p = default)
         {
-            if (!NetworkManager.Singleton.SpawnManager.SpawnedObjects
+            var nm = NetworkManager.Singleton;
+            if (nm == null)
+                return;
+
+            if (!nm.SpawnManager.SpawnedObjects
                 .TryGetValue(req.ObjectId, out var netObj))
                 return;
 
@@ -142,7 +147,11 @@ namespace Test.Services
         [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
         public void RequestReleaseServerRpc(GrabRequest req, RpcParams p = default)
         {
-            if (!NetworkManager.Singleton.SpawnManager.SpawnedObjects
+            var nm = NetworkManager.Singleton;
+            if (nm == null)
+                return;
+
+            if (!nm.SpawnManager.SpawnedObjects
                 .TryGetValue(req.ObjectId, out var netObj))
                 return;
 
@@ -167,7 +176,11 @@ namespace Test.Services
         [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
         public void RequestThrowServerRpc(GrabRequest req, Vector3 forward, RpcParams p = default)
         {
-            if (!NetworkManager.Singleton.SpawnManager.SpawnedObjects
+            var nm = NetworkManager.Singleton;
+            if (nm == null)
+                return;
+
+            if (!nm.SpawnManager.SpawnedObjects
                 .TryGetValue(req.ObjectId, out var netObj))
                 return;
 
@@ -197,7 +210,11 @@ namespace Test.Services
         [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
         public void RequestDeleteServerRpc(GrabRequest req, RpcParams p = default)
         {
-            if (!NetworkManager.Singleton.SpawnManager.SpawnedObjects
+            var nm = NetworkManager.Singleton;
+            if (nm == null)
+                return;
+
+            if (!nm.SpawnManager.SpawnedObjects
                 .TryGetValue(req.ObjectId, out var netObj))
                 return;
 

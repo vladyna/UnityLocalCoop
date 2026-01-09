@@ -11,13 +11,14 @@ namespace Test.UI
         [SerializeField] private GameObject _panel;
         [SerializeField] private Button _backToMenuButton;
         [SerializeField] private Button _closeButton;
-        [SerializeField] private Test.UI.PlayerListUI _playerListUi;
+        [SerializeField] private PlayerListUI _playerListUi;
 
         [Inject] private LobbyManager _lobbyManager;
-        [Inject] private GameManager _gamaManager;
+        [Inject] private GameManager _gameManager;
         [Inject] private PlayerInputService _inputService;
 
         private bool _isOpen;
+        private float _menuToggleCooldown;
 
         private void Start()
         {
@@ -45,8 +46,20 @@ namespace Test.UI
 
         private void Update()
         {
+            if (_menuToggleCooldown > 0f)
+                _menuToggleCooldown -= Time.unscaledDeltaTime;
+
+            if (_menuToggleCooldown > 0f)
+                return;
+
+            if (_inputService == null || _inputService.Input == null)
+                return;
+
             if (_inputService.Input.UI.Menu.triggered)
+            {
                 Toggle();
+                _menuToggleCooldown = 0.15f;
+            }
         }
 
         public void Toggle()
@@ -91,7 +104,7 @@ namespace Test.UI
                 _panel.SetActive(false);
 
             _lobbyManager?.LeaveLobby();
-            _gamaManager.ForceReturnToMainMenu();
+            _gameManager.ForceReturnToMainMenu();
         }
 
         private void DisableLocalPlayer(bool disable)

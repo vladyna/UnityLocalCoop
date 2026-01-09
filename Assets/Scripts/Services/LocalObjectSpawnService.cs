@@ -12,6 +12,9 @@ namespace Test.Services
 
         public void SpawnObject(Vector3 position, Quaternion rotation)
         {
+            if (_objectPrefab == null || _prefabFactory == null)
+                return;
+
             var obj = _prefabFactory.Create(_objectPrefab);
             obj.transform.position = position;
             obj.transform.rotation = rotation;

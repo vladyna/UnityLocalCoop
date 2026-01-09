@@ -107,7 +107,7 @@ namespace Test.Objects.Network
 
             _lastProcessedSequence.OnValueChanged += (prev, cur) => OnServerProcessedSequence?.Invoke(cur);
 
-            _isGrabbed.OnValueChanged += (prev, cur) => OnGrabbedChanged(prev, cur);
+            _isGrabbed.OnValueChanged += OnGrabbedChanged;
 
             _netPosition.OnValueChanged += OnNetPositionChanged;
             _netRotationEuler.OnValueChanged += OnNetRotationChanged;
@@ -122,7 +122,7 @@ namespace Test.Objects.Network
 
         public override void OnNetworkDespawn()
         {
-            _isGrabbed.OnValueChanged -= (prev, cur) => OnGrabbedChanged(prev, cur);
+            _isGrabbed.OnValueChanged -=  OnGrabbedChanged;
 
             _netPosition.OnValueChanged -= OnNetPositionChanged;
             _netRotationEuler.OnValueChanged -= OnNetRotationChanged;
@@ -203,9 +203,11 @@ namespace Test.Objects.Network
             if (!IsServer)
                 return;
 
+            var previous = _isGrabbed.Value;
+
             _isGrabbed.Value = grabbed;
             _grabberClientId.Value = grabbed ? grabberClientId : 0;
-            OnGrabbedChanged(!_isGrabbed.Value, grabbed);
+            OnGrabbedChanged(previous, grabbed);
         }
     }
 }

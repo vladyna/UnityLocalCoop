@@ -11,7 +11,8 @@ namespace Test.Services
         {
             if (_grabbedObject != null)
                 return;
-            if (Physics.Raycast(origin, direction, out var hit, 3f))
+
+            if (Physics.Raycast(origin, direction, out var hit, maxDistance))
             {
                 var grabbable = hit.collider.GetComponentInParent<ObjectRoot>();
                 if (grabbable == null || grabbable.IsGrabbed)
@@ -50,7 +51,7 @@ namespace Test.Services
         {
             if (_grabbedObject != null)
             {
-                UnityEngine.Object.Destroy(_grabbedObject);
+                UnityEngine.Object.Destroy(_grabbedObject.gameObject);
                 _grabbedObject = null;
             }
         }

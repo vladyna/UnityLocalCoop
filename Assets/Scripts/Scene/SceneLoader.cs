@@ -10,12 +10,10 @@ namespace Test.Scene
 {
     public class SceneLoader : ISceneLoader
     {
-        private readonly INetworkSceneDriverRef _driverRef;
         private readonly LoadingUI _loadingUI;
 
         public SceneLoader(INetworkSceneDriverRef driverRef, LoadingUI loadingUI)
         {
-            _driverRef = driverRef;
             _loadingUI = loadingUI;
         }
 
@@ -26,7 +24,7 @@ namespace Test.Scene
                 return;
             }
 
-            _loadingUI.Show();
+            _loadingUI?.Show();
             await UniTask.DelayFrame(1);
 
             var sceneName = scene.SceneName;
@@ -35,6 +33,7 @@ namespace Test.Scene
             if (nm != null && nm.IsServer && nm.SceneManager != null)
             {
                 nm.SceneManager.LoadScene(sceneName, mode);
+                _loadingUI?.Hide();
                 return;
             }
 
@@ -52,25 +51,32 @@ namespace Test.Scene
 
             SceneManager.sceneLoaded += handler;
 
-            var op = SceneManager.LoadSceneAsync(sceneName, mode);
-            if (op != null)
+            try
             {
-                while (!op.isDone)
+                var op = SceneManager.LoadSceneAsync(sceneName, mode);
+                if (op != null)
                 {
-                    _loadingUI.SetProgress(op.progress);
+                    while (!op.isDone)
+                    {
+                        _loadingUI?.SetProgress(op.progress);
+                        await UniTask.Yield();
+                    }
+                }
+
+                while (!loaded)
+                {
                     await UniTask.Yield();
                 }
             }
-
-            while (!loaded)
+            finally
             {
-                await UniTask.Yield();
+                SceneManager.sceneLoaded -= handler;
             }
 
             var isNetworkSession = nm != null && (nm.IsClient || nm.IsServer);
             if (!isNetworkSession)
             {
-                _loadingUI.Hide();
+                _loadingUI?.Hide();
             }
         }
     }

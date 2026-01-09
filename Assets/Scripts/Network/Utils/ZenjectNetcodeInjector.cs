@@ -7,8 +7,19 @@ namespace Test.Network.Utils
     {
         public override void OnNetworkSpawn()
         {
+            base.OnNetworkSpawn();
+
             var sceneContext = FindFirstObjectByType<SceneContext>();
-            sceneContext.Container.InjectGameObject(gameObject);
+            if (sceneContext != null)
+            {
+                sceneContext.Container.InjectGameObject(gameObject);
+                return;
+            }
+
+            if (ProjectContext.HasInstance)
+            {
+                ProjectContext.Instance.Container.InjectGameObject(gameObject);
+            }
         }
     }
 }

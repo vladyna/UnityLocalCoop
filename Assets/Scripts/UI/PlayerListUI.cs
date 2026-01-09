@@ -95,7 +95,7 @@ namespace Test.UI
             var hostId = _lobbyManager.HostClientId;
             var localId = nm != null ? NetworkManager.ServerClientId : 0ul;
 
-            var canKick = (localId == hostId) && (player.ClientId != hostId);
+            var canKick = (nm != null && nm.IsHost) && (localId == hostId) && (player.ClientId != hostId);
             var id = player.ClientId;
             item.Initialize(canKick, () => _lobbyManager.Kick(id));
         }

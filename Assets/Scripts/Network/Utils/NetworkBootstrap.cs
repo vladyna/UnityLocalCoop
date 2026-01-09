@@ -13,6 +13,10 @@ namespace Test.Network.Utils
             if (NetworkManager.Singleton != null)
                 return;
 
+            // Singleton may not be initialized yet; avoid instantiating a duplicate if one exists in scene.
+            if (Object.FindFirstObjectByType<NetworkManager>() != null)
+                return;
+
             var prefab = Resources.Load<GameObject>(NetworkManagerPrefabResourcePath);
             if (prefab == null)
             {

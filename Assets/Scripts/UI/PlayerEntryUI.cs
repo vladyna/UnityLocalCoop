@@ -1,7 +1,7 @@
+using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using System;
 namespace Test.UI
 {
     public class PlayerEntryUI : MonoBehaviour
@@ -10,9 +10,11 @@ namespace Test.UI
         [SerializeField] private TextMeshProUGUI _playerPingText;
         [SerializeField] private Button _kick;
 
-        public void Initialize(bool canKick, System.Action onKick)
+        public void Initialize(bool canKick, Action onKick)
         {
-            if (_kick == null) return;
+            if (_kick == null)
+                return;
+
             _kick.gameObject.SetActive(canKick);
             _kick.onClick.RemoveAllListeners();
             if (canKick && onKick != null)

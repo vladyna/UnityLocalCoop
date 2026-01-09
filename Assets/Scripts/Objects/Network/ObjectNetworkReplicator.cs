@@ -41,7 +41,10 @@ namespace Test.Objects.Network
 
         public void SendInput(ObjectInput input)
         {
-            if (!IsClient || _net == null || !_net.IsOwner)
+            if (!IsSpawned)
+                return;
+
+            if (!IsClient || _net == null || _root == null || !_net.IsOwner)
                 return;
 
 
@@ -59,14 +62,15 @@ namespace Test.Objects.Network
                 return;
             }
 
-            _sendTimer += Time.deltaTime;
+            var dt = Time.deltaTime;
+            _sendTimer += dt;
             if (_sendTimer < SendInterval)
                 return;
 
             _sendTimer = 0f;
 
             input.Sequence = _nextSequence++;
-            input.DeltaTime = Time.deltaTime;
+            input.DeltaTime = dt;
             input.Timestamp = Time.time;
 
             _pendingInputs.Add(input);

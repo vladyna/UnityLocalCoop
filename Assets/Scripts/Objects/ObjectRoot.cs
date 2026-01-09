@@ -21,6 +21,12 @@ namespace Test.Objects
         private void Awake()
         {
             var rb = GetComponent<Rigidbody>();
+            if (rb == null)
+            {
+                enabled = false;
+                return;
+            }
+
             _core = new GrabbableControllerCore(rb);
 
             _network = GetComponent<ObjectNetwork>();
@@ -107,17 +113,17 @@ namespace Test.Objects
 
         private void Update()
         {
-            if (_network != null)
-            {
-                if (!_network.IsGrabbed || !_network.IsOwner)
-                    return;
-            }
+            if (_driver == null)
+                return;
+
+            if (_network != null && (!_network.IsGrabbed || !_network.IsOwner))
+                return;
 
             if (_camera == null)
                 return;
 
-            Vector3 target = _camera.transform.position +
-                              _camera.transform.forward * 2f;
+            var target = _camera.transform.position +
+                         _camera.transform.forward * 2f;
 
             Tick(target, false);
         }

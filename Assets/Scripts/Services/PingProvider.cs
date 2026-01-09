@@ -1,4 +1,5 @@
 using Unity.Netcode;
+using Unity.Netcode.Transports.UTP;
 
 namespace Test.Services
 {
@@ -7,28 +8,14 @@ namespace Test.Services
         public string GetPingForClient(ulong clientId)
         {
             var nm = NetworkManager.Singleton;
-            if (nm == null) return "-";
-
-            try
-            {
-                var transportComp = nm.GetComponent("UnityTransport");
-
-                if (transportComp != null)
-                {
-                    var mi = transportComp.GetType().GetMethod("GetCurrentRtt");
-                    if (mi != null)
-                    {
-                        var val = mi.Invoke(transportComp, new object[] { clientId });
-                        if (val != null)
-                            return val.ToString();
-                    }
-                }
+            if (nm == null)
                 return "-";
-            }
-            catch
-            {
+
+            var transport = nm.GetComponent<UnityTransport>();
+            if (transport == null)
                 return "-";
-            }
+
+            return transport.GetCurrentRtt(clientId).ToString();
         }
     }
 }

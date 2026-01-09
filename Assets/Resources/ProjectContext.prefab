@@ -165,7 +165,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 37523593854878474, guid: 518ff1cb7fe190543a42caafdb9a02ca, type: 3}
       propertyPath: m_AnchorMax.y
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 967555351466103867, guid: 518ff1cb7fe190543a42caafdb9a02ca, type: 3}
       propertyPath: m_Name
@@ -256,9 +256,21 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 2650216043215908811}
     - target: {fileID: 3411906937677232349, guid: 518ff1cb7fe190543a42caafdb9a02ca, type: 3}
+      propertyPath: _progressBar
+      value: 
+      objectReference: {fileID: 2650216043215908811}
+    - target: {fileID: 3411906937677232349, guid: 518ff1cb7fe190543a42caafdb9a02ca, type: 3}
       propertyPath: loadingPanel
       value: 
       objectReference: {fileID: 6229898015289087819}
+    - target: {fileID: 3411906937677232349, guid: 518ff1cb7fe190543a42caafdb9a02ca, type: 3}
+      propertyPath: _loadingPanel
+      value: 
+      objectReference: {fileID: 6229898015289087819}
+    - target: {fileID: 5569836276421498981, guid: 518ff1cb7fe190543a42caafdb9a02ca, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []

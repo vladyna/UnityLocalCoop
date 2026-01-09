@@ -4,8 +4,8 @@ namespace Test.UI
 {
     public class LoadingUI : MonoBehaviour
     {
-        public GameObject loadingPanel;
-        public Slider progressBar;
+        [SerializeField] private GameObject _loadingPanel;
+        [SerializeField] private Slider _progressBar;
 
         private void Awake()
         {
@@ -14,17 +14,20 @@ namespace Test.UI
 
         public void Show()
         {
-            loadingPanel.SetActive(true);
+            if (_loadingPanel != null)
+                _loadingPanel.SetActive(true);
         }
 
         public void Hide()
         {
-            loadingPanel.SetActive(false);
+            if (_loadingPanel != null)
+                _loadingPanel.SetActive(false);
         }
 
         public void SetProgress(float value)
         {
-            progressBar.value = value;
+            if (_progressBar != null)
+                _progressBar.value = value;
         }
     }
 }

@@ -19,6 +19,9 @@ namespace Test.Services
 
         private void RequestSpawn(Vector3 pos, Quaternion rot)
         {
+            if (_objectPrefab == null)
+                return;
+
             if (IsServer)
                 Spawn(pos, rot);
             else
@@ -34,11 +37,17 @@ namespace Test.Services
         [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
         private void RequestSpawnServerRpc(ObjectSpawnRequest request)
         {
+            if (_objectPrefab == null)
+                return;
+
             Spawn(request.Position, request.Rotation);
         }
 
         private void Spawn(Vector3 pos, Quaternion rot)
         {
+            if (_prefabFactory == null)
+                return;
+
             var obj = _prefabFactory.CreateNetworkObject(_objectPrefab, pos, rot);
             obj.GetComponent<NetworkObject>().Spawn();
         }

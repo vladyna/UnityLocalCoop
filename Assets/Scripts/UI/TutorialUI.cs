@@ -32,19 +32,22 @@ namespace Test.UI
                 return;
 
             var input = _inputService.Input;
+            if (input == null)
+                return;
+
             var player = input.Player;
 
             var actions = new[]
             {
-            player.Move,
-            player.Look,
-            player.Interact,
-            player.Release,
-            player.Throw,
-            player.Delete,
-            player.Spawn,
-            player.Color
-        };
+                player.Move,
+                player.Look,
+                player.Interact,
+                player.Release,
+                player.Throw,
+                player.Delete,
+                player.Spawn,
+                player.Color
+            };
 
             foreach (var action in actions)
             {

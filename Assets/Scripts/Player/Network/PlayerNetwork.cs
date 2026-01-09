@@ -5,9 +5,9 @@ namespace Test.Player.Network
 {
     public class PlayerNetwork : NetworkBehaviour
     {
-        public string PlayerName;
+        public string PlayerName { get; private set; }
 
-        [SerializeField] private Renderer targetRenderer;
+        [SerializeField] private Renderer _targetRenderer;
         [SerializeField] private Camera _camera;
 
         private readonly NetworkVariable<Color32> _color = new NetworkVariable<Color32>(
@@ -38,14 +38,21 @@ namespace Test.Player.Network
 
         private CharacterController _charController;
 
+        private Material _cachedMaterial;
+
         private const float OwnerLargeThreshold = 25.0f;
         private const float OwnerMediumThreshold = 0.5f;
         private const float OwnerCorrectionSpeed = 12f;
 
         public override void OnNetworkSpawn()
         {
-            if (targetRenderer == null)
-                targetRenderer = GetComponentInChildren<Renderer>();
+            base.OnNetworkSpawn();
+
+            if (_targetRenderer == null)
+                _targetRenderer = GetComponentInChildren<Renderer>();
+
+            if (_targetRenderer != null)
+                _cachedMaterial = _targetRenderer.material;
 
             _color.OnValueChanged += OnColorChanged;
             ApplyColor(_color.Value);
@@ -66,6 +73,8 @@ namespace Test.Player.Network
 
         public override void OnNetworkDespawn()
         {
+            base.OnNetworkDespawn();
+
             _color.OnValueChanged -= OnColorChanged;
             _netPosition.OnValueChanged -= OnNetPositionChanged;
             _netRotationEuler.OnValueChanged -= OnNetRotationChanged;
@@ -73,16 +82,8 @@ namespace Test.Player.Network
 
         private void ApplyOwnershipState()
         {
-            if(IsOwner)
-            {
-                if (_camera != null)
-                    _camera.enabled = true;
-            }
-            else
-            {
-                if (_camera != null)
-                    _camera.enabled = false;
-            }
+            if (_camera != null)
+                _camera.enabled = IsOwner;
         }
 
         public void CycleColor()
@@ -181,11 +182,11 @@ namespace Test.Player.Network
 
         private void ApplyColor(Color32 c)
         {
-            if (targetRenderer == null)
+            if (_targetRenderer == null)
                 return;
 
-            if (targetRenderer.material != null)
-                targetRenderer.material.color = c;
+            if (_cachedMaterial != null)
+                _cachedMaterial.color = c;
         }
     }
 }

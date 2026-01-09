@@ -16,6 +16,7 @@ namespace Test.Player.Network
         private float _accumulatedDt;
         private const float SendInterval = 0.01f;
         private readonly List<MovementInput> _pendingInputs = new();
+
         public void Initialize(ICharacterController controller)
         {
             _controller = controller;
@@ -26,10 +27,10 @@ namespace Test.Player.Network
 
         public void SendInput(MovementInput input)
         {
+            var nm = NetworkManager.Singleton;
             _accumulatedLook += input.Look;
-            var grounded = _characterController != null ? _characterController.isGrounded : false;
 
-            if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsClient)
+            if (nm != null && nm.IsClient)
             {
                 var dt = input.DeltaTime > 0f ? input.DeltaTime : Time.deltaTime;
                 _accumulatedDt += dt;
@@ -55,17 +56,15 @@ namespace Test.Player.Network
                 _sendTimer = 0f;
                 _accumulatedDt = 0f;
             }
-            if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer)
-            {
-                if (NetworkManager.Singleton != null)
-                {
-                    if (_playerNetwork == null)
-                        _playerNetwork = GetComponent<PlayerNetwork>();
 
-                    var pos = transform.position;
-                    var rot = transform.rotation.eulerAngles;
-                    _playerNetwork?.ApplyServerTransform(pos, rot);
-                }
+            if (nm != null && nm.IsServer)
+            {
+                if (_playerNetwork == null)
+                    _playerNetwork = GetComponent<PlayerNetwork>();
+
+                var pos = transform.position;
+                var rot = transform.rotation.eulerAngles;
+                _playerNetwork?.ApplyServerTransform(pos, rot);
             }
         }
 
@@ -84,6 +83,8 @@ namespace Test.Player.Network
             {
                 _playerNetwork.OnServerProcessedSequence -= OnServerProcessedSequence;
             }
+
+            base.OnNetworkDespawn();
         }
 
         private void OnServerProcessedSequence(int seq)

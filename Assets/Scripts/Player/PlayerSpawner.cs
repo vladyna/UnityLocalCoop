@@ -10,6 +10,7 @@ namespace Test.Player
 {
     public class PlayerSpawner : MonoBehaviour
     {
+        private const string GameSceneName = "Game";
 
         [SerializeField] private GameObject _localPlayerPrefab;
         [SerializeField] private GameObject _networkPlayerPrefab;
@@ -17,7 +18,7 @@ namespace Test.Player
         [Inject] private LobbyManager _lobbyManager;
         [Inject] private PrefabFactory _prefabFactory;
 
-        void Awake()
+        private void Awake()
         {
             if (!_lobbyManager.IsInLobby)
             {
@@ -25,8 +26,12 @@ namespace Test.Player
             }
             else
             {
-                NetworkManager.Singleton.SceneManager.OnLoadEventCompleted += OnSceneLoaded;
-                NetworkManager.Singleton.OnClientConnectedCallback += OnClientConnected;
+                var nm = NetworkManager.Singleton;
+                if (nm != null)
+                {
+                    nm.OnClientConnectedCallback += OnClientConnected;
+                    nm.SceneManager.OnLoadEventCompleted += OnSceneLoaded;
+                }
             }
         }
 
@@ -53,15 +58,16 @@ namespace Test.Player
             List<ulong> clientsCompleted,
             List<ulong> clientsTimedOut)
         {
-            if (!NetworkManager.Singleton.IsServer)
+            var nm = NetworkManager.Singleton;
+            if (nm == null || !nm.IsServer)
                 return;
 
-            if (sceneName != "Game")
+            if (sceneName != GameSceneName)
                 return;
 
             Debug.Log($"Scene {sceneName} loaded for clients: {string.Join(",", clientsCompleted)}");
 
-            foreach (var client in NetworkManager.Singleton.ConnectedClientsList)
+            foreach (var client in nm.ConnectedClientsList)
             {
                 if (client.PlayerObject != null)
                     continue;
@@ -77,11 +83,12 @@ namespace Test.Player
 
         private void OnDestroy()
         {
-            if (NetworkManager.Singleton != null && NetworkManager.Singleton.SceneManager != null)
-            {
-                NetworkManager.Singleton.SceneManager.OnLoadEventCompleted -= OnSceneLoaded;
-                NetworkManager.Singleton.OnClientConnectedCallback -= OnClientConnected;
-            }
+            var nm = NetworkManager.Singleton;
+            if (nm == null)
+                return;
+
+            nm.OnClientConnectedCallback -= OnClientConnected;
+            nm.SceneManager.OnLoadEventCompleted -= OnSceneLoaded;
         }
     }
 }

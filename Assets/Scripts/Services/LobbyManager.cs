@@ -14,7 +14,14 @@ namespace Test.Services
         private readonly List<PlayerInfo> _players = new();
         public IReadOnlyList<PlayerInfo> Players => _players;
         public ulong HostClientId { get; private set; }
-        public bool IsInLobby => NetworkManager.Singleton.IsClient || NetworkManager.Singleton.IsHost;
+        public bool IsInLobby
+        {
+            get
+            {
+                var nm = NetworkManager.Singleton;
+                return nm != null && (nm.IsClient || nm.IsHost);
+            }
+        }
 
         public event Action OnHostLeft;
         public event Action<ulong> OnPlayerJoined;
@@ -40,16 +47,24 @@ namespace Test.Services
             SubscribeToEvents();
 
             LastKnownHostLanIp = _lanIpService.GetBestLanIpv4Address();
-            ConfigureTransport(LastKnownHostLanIp, ushort.TryParse(port, out var parsedPort) ? parsedPort : DefaultPort);
+            var parsedPort = ushort.TryParse(port, out var p) ? p : DefaultPort;
+            ConfigureTransport(LastKnownHostLanIp, parsedPort);
 
-            var ok = NetworkManager.Singleton.StartHost();
+            var nm = NetworkManager.Singleton;
+            if (nm == null)
+            {
+                OnNetworkStartFailed?.Invoke("NetworkManager is missing.");
+                return;
+            }
+
+            var ok = nm.StartHost();
             if (!ok)
             {
                 OnNetworkStartFailed?.Invoke("Failed to start client; Port is busy\"");
                 return;
             }
 
-            OnNetworkStatus?.Invoke($"Host starting on {LastKnownHostLanIp}:{DefaultPort}...");
+            OnNetworkStatus?.Invoke($"Host starting on {LastKnownHostLanIp}:{parsedPort}...");
         }
 
         public void JoinLobby(string port)
@@ -65,16 +80,24 @@ namespace Test.Services
                 hostIp = "127.0.0.1";
 
             hostIp = hostIp.Trim();
-            ConfigureTransport(hostIp, ushort.TryParse(port, out var parsedPort) ? parsedPort : DefaultPort);
+            var parsedPort = ushort.TryParse(port, out var p) ? p : DefaultPort;
+            ConfigureTransport(hostIp, parsedPort);
 
-            var ok = NetworkManager.Singleton.StartClient();
+            var nm = NetworkManager.Singleton;
+            if (nm == null)
+            {
+                OnNetworkStartFailed?.Invoke("NetworkManager is missing.");
+                return;
+            }
+
+            var ok = nm.StartClient();
             if (!ok)
             {
                 OnNetworkStartFailed?.Invoke("Failed to start client; Port is busy");
                 return;
             }
 
-            OnNetworkStatus?.Invoke($"Client connecting to {hostIp}:{DefaultPort}...");
+            OnNetworkStatus?.Invoke($"Client connecting to {hostIp}:{parsedPort}...");
         }
 
         private void ConfigureTransport(string address, ushort port)
@@ -96,11 +119,6 @@ namespace Test.Services
             if (nm == null)
                 return;
 
-            nm.OnClientConnectedCallback -= AddPlayer;
-            nm.OnClientDisconnectCallback -= RemovePlayer;
-            nm.OnClientConnectedCallback += AddPlayer;
-            nm.OnClientDisconnectCallback += RemovePlayer;
-
             nm.OnTransportFailure -= OnTransportFailure;
             nm.OnTransportFailure += OnTransportFailure;
 
@@ -109,6 +127,15 @@ namespace Test.Services
 
             nm.OnClientConnectedCallback -= OnAnyClientConnected;
             nm.OnClientConnectedCallback += OnAnyClientConnected;
+
+            nm.OnClientConnectedCallback -= AddPlayer;
+            nm.OnClientDisconnectCallback -= RemovePlayer;
+
+            if (nm.IsHost)
+            {
+                nm.OnClientConnectedCallback += AddPlayer;
+                nm.OnClientDisconnectCallback += RemovePlayer;
+            }
         }
 
         private void UnsubscribeFromEvents()
@@ -127,7 +154,8 @@ namespace Test.Services
 
         private void OnTransportFailure()
         {
-            var reason = NetworkManager.Singleton != null ? NetworkManager.Singleton.DisconnectReason : null;
+            var nm = NetworkManager.Singleton;
+            var reason = nm != null ? nm.DisconnectReason : null;
             if (string.IsNullOrWhiteSpace(reason))
                 reason = "Transport failure (socket/port/network error).";
 
@@ -136,7 +164,8 @@ namespace Test.Services
 
         private void OnAnyClientConnected(ulong clientId)
         {
-            if (NetworkManager.Singleton != null && clientId == NetworkManager.Singleton.LocalClientId)
+            var nm = NetworkManager.Singleton;
+            if (nm != null && clientId == nm.LocalClientId)
             {
                 OnNetworkStatus?.Invoke("Connected.");
             }
@@ -144,9 +173,10 @@ namespace Test.Services
 
         private void OnAnyClientDisconnected(ulong clientId)
         {
-            if (NetworkManager.Singleton != null && clientId == NetworkManager.Singleton.LocalClientId)
+            var nm = NetworkManager.Singleton;
+            if (nm != null && clientId == nm.LocalClientId)
             {
-                var reason = NetworkManager.Singleton.DisconnectReason;
+                var reason = nm.DisconnectReason;
                 if (string.IsNullOrWhiteSpace(reason))
                     reason = "Disconnected.";
 
@@ -207,10 +237,11 @@ namespace Test.Services
 
         public void Kick(ulong targetClientId)
         {
-            if (NetworkManager.Singleton == null)
+            var nm = NetworkManager.Singleton;
+            if (nm == null)
                 return;
 
-            if (!NetworkManager.Singleton.IsHost)
+            if (!nm.IsHost)
                 return;
 
             NetworkBridge?.Kick(targetClientId);
@@ -218,7 +249,8 @@ namespace Test.Services
 
         public void SetLocalPlayerName(string name)
         {
-            var localId = NetworkManager.Singleton != null ? NetworkManager.Singleton.LocalClientId : 0;
+            var nm = NetworkManager.Singleton;
+            var localId = nm != null ? nm.LocalClientId : 0;
             for (int i = 0; i < _players.Count; i++)
             {
                 if (_players[i].ClientId != localId)
