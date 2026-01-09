@@ -13,6 +13,7 @@ namespace Test.Player.Network
         private Vector2 _accumulatedLook;
         private int _nextSequence;
         private float _sendTimer;
+        private float _accumulatedDt;
         private const float SendInterval = 0.01f;
         private readonly List<MovementInput> _pendingInputs = new();
         public void Initialize(ICharacterController controller)
@@ -30,23 +31,29 @@ namespace Test.Player.Network
 
             if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsClient)
             {
-                _sendTimer += Time.deltaTime;
-                if (_sendTimer >= SendInterval)
+                var dt = input.DeltaTime > 0f ? input.DeltaTime : Time.deltaTime;
+                _accumulatedDt += dt;
+
+                _sendTimer += dt;
+                if (_sendTimer < SendInterval)
+                    return;
+
+                var sendInput = new MovementInput
                 {
-                    _sendTimer = 0f;
-                    var sendInput = new MovementInput
-                    {
-                        Sequence = _nextSequence++,
-                        Move = input.Move,
-                        Look = _accumulatedLook,
-                        DeltaTime = Time.deltaTime,
-                        Jump = input.Jump,
-                        Timestamp = Time.time
-                    };
-                    _pendingInputs.Add(sendInput);
-                    SubmitMovementServerRpc(sendInput);
-                    _accumulatedLook = Vector2.zero;
-                }
+                    Sequence = _nextSequence++,
+                    Move = input.Move,
+                    Look = _accumulatedLook,
+                    DeltaTime = _accumulatedDt,
+                    Jump = input.Jump,
+                    Timestamp = Time.time
+                };
+
+                _pendingInputs.Add(sendInput);
+                SubmitMovementServerRpc(sendInput);
+                _accumulatedLook = Vector2.zero;
+
+                _sendTimer = 0f;
+                _accumulatedDt = 0f;
             }
             if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer)
             {

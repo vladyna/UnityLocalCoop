@@ -17,7 +17,9 @@ namespace Test.Player.Network
 
         public void Tick(MovementInput input)
         {
-            _controller.Simulate(input, Time.deltaTime);
+            var dt = Time.deltaTime;
+            input.DeltaTime = dt;
+            _controller.Simulate(input, dt);
             _replicator.SendInput(input);
         }
 
